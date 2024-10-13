@@ -1,0 +1,49 @@
+trigger:
+  paths:
+    include:
+    - worker/*
+resources:
+  repositories:
+  - repository: self
+variables:
+- name: dockerRegistryServiceConnection
+  value: 'f200819a-9184-4546-a50f-ffa454764809'
+- name: imageRepository
+  value: 'workerapp'
+- name: containerRegistry
+  value: 'voteappacr2.azurecr.io'
+- name: dockerfilePath
+  value: '$(Build.SourcesDirectory)/worker/Dockerfile'
+- name: tag
+  value: '$(Build.BuildId)'
+pool:
+  name: 'votingapp-gents'
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+  - job: Build
+    displayName: Build
+    steps:
+    - task: Docker@2
+      displayName: Build
+      inputs:
+        containerRegistry: 'voteappACR2'
+        repository: '$(imageRepository)'
+        command: 'build'
+        Dockerfile: 'worker/Dockerfile'
+        tags: '$(tag)'
+- stage: Push
+  displayName: Push
+  jobs:
+  - job: Push
+    displayName: Push
+    steps:
+    - task: Docker@2
+      displayName: Push image to ACR
+      inputs:
+        containerRegistry: '$(dockerRegistryServiceConnection)'
+        repository: '$(imageRepository)'
+        command: 'push'
+        tags: '$(tag)'
+
